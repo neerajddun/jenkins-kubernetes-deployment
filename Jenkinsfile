@@ -10,6 +10,7 @@ pipeline {
         git 'https://github.com/neerajddun/jenkins-kubernetes-deployment.git'
       }
     }
+    
     stage('Build image') {
       steps {
         script {
@@ -17,6 +18,7 @@ pipeline {
         }
       }
     }
+    
     stage('Pushing Image') {
       steps {
         script {
@@ -26,11 +28,16 @@ pipeline {
         }
       }
     }
-        stage('Deploying React.js container to Kubernetes') {
+    
+    stage('Deploying to Kubernetes') {
       steps {
         script {
-          kubernetesDeploy(configs: "deployment.yaml", 
-                                         "service.yaml")
+          // Option 1: Using kubectl directly (requires kubectl configured on Jenkins)
+          sh 'kubectl apply -f deployment.yaml'
+          sh 'kubectl apply -f service.yaml'
+          
+          // Option 2: Using Kubernetes plugin if installed
+          // kubernetesApply(configs: ['deployment.yaml', 'service.yaml'], kubeconfigId: 'k8s-credentials')
         }
       }
     }
