@@ -30,16 +30,15 @@ pipeline {
     }
     
     stage('Deploying to Kubernetes') {
-      steps {
-        script {
-          // Option 1: Using kubectl directly (requires kubectl configured on Jenkins)
-          sh 'kubectl apply -f deployment.yaml'
-          sh 'kubectl apply -f service.yaml'
-          
-          // Option 2: Using Kubernetes plugin if installed
-          // kubernetesApply(configs: ['deployment.yaml', 'service.yaml'], kubeconfigId: 'k8s-credentials')
-        }
+  steps {
+    script {
+      withCredentials([file(credentialsId: 'k8s-credentials', variable: 'KUBECONFIG')]) {
+        sh 'kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG'
+        sh 'kubectl apply -f service.yaml --kubeconfig=$KUBECONFIG'
       }
     }
+  }
+}
+
   }
 }
