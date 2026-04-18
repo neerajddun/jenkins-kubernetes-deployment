@@ -109,7 +109,7 @@ pipeline {
                     k8s/deployment.yaml
 
                     echo "✅ deployment.yaml updated!"
-                    cat k8s/deployment.yaml
+                    cat demo/deployment.yaml
                 """
             }
         }
