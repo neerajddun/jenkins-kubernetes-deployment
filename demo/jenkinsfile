@@ -106,7 +106,7 @@ pipeline {
                 sh """
                     sed -i \
                     's|image:.*|image: ${FULL_IMAGE}|g' \
-                    k8s/deployment.yaml
+                    demo/deployment.yaml
 
                     echo "✅ deployment.yaml updated!"
                     cat demo/deployment.yaml
