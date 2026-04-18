@@ -125,11 +125,11 @@ pipeline {
                 )]) {
                     sh """
                         kubectl apply \
-                        -f k8s/deployment.yaml \
+                        -f demo/deployment.yaml \
                         --validate=false
 
                         kubectl apply \
-                        -f k8s/service.yaml \
+                        -f demo/service.yaml \
                         --validate=false
 
                         kubectl rollout status \
