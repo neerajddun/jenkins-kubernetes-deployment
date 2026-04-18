@@ -12,8 +12,8 @@ spec:
       labels:
         app: demo-app
     spec:
-      containers: 
-      - name: demo-app
-         image: neeraj91/demo-app:latest
-         ports:
-         - containerPort: 8080
+      containers:
+        - name: demo-app
+          image: neeraj91/demo-app:latest
+          ports:
+            - containerPort: 8080
