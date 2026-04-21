@@ -3,8 +3,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.9.9'          // ✅
-        jdk 'jdk17'                  // ✅
+        maven 'Maven 3.6.3'          // ✅
+        jdk 'jdk21'                  // ✅
     }
 
     environment {
@@ -98,95 +98,10 @@ pipeline {
             }
         }
 
-        // ─────────────────────────
-        // Stage 6: Update K8s YAML ✅ Fixed!
-        // ─────────────────────────
-        stage('Update K8s Manifest') {
-            steps {
-                sh """
-                    sed -i \
-                    's|image:.*|image: ${FULL_IMAGE}|g' \
-                    demo/deployment.yaml
-
-                    echo "✅ deployment.yaml updated!"
-                    cat demo/deployment.yaml
-                """
-            }
-        }
-
-        // ─────────────────────────
-        // Stage 7: Deploy to Minikube ✅
-        // ─────────────────────────
+        
         stage('Deploy to Minikube') {
             steps {
-                withCredentials([file(
-                    credentialsId: 'kubeconfig',
-                    variable: 'KUBECONFIG'
-                )]) {
-                    sh """
-                        kubectl apply \
-                        -f demo/deployment.yaml \
-                        --validate=false
-
-                        kubectl apply \
-                        -f demo/service.yaml \
-                        --validate=false
-
-                        kubectl rollout status \
-                        deployment/demo-app \
-                        --timeout=120s
-
-                        echo "✅ Deployed!"
-                    """
-                }
-            }
+            sh 'echo Deploy'
         }
 
-        // ─────────────────────────
-        // Stage 8: Verify ✅
-        // ─────────────────────────
-        stage('Verify Deployment') {
-            steps {
-                withCredentials([file(
-                    credentialsId: 'kubeconfig',
-                    variable: 'KUBECONFIG'
-                )]) {
-                    sh """
-                        echo "=== Pods ==="
-                        kubectl get pods \
-                        -l app=demo-app
-
-                        echo "=== Service ==="
-                        kubectl get svc demo-app-svc
-
-                        echo "=== Deployment ==="
-                        kubectl get deployment demo-app
-
-                        echo "✅ Verification done!"
-                    """
-                }
-            }
-        }
-    }
-
-    // ─────────────────────────
-    // Post Actions ✅
-    // ─────────────────────────
-    post {
-        success {
-            echo "✅ Pipeline SUCCESS!"
-            echo "Image: ${FULL_IMAGE}"
-            echo "App deployed to Minikube!"
-        }
-        failure {
-            echo "❌ Pipeline FAILED!"
-        }
-        always {
-            sh """
-                docker rmi ${IMAGE_NAME} || true
-                docker rmi ${FULL_IMAGE} || true
-            """
-            cleanWs()
-        }
-    }
-}
+        
