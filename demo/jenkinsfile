@@ -9,7 +9,7 @@ pipeline {
 
     environment {
         IMAGE_NAME      = "${JOB_NAME}:v1.${BUILD_ID}"
-        DOCKER_HUB_USER = 'neeraj91'
+        DOCKER_HUB_USER = 'neerajddun'
         FULL_IMAGE      = "neeraj91/${JOB_NAME}:v1.${BUILD_ID}"
     }
 
