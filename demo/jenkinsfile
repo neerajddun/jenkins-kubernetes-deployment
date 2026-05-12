@@ -19,7 +19,7 @@ pipeline {
             branch: 'master'
       }
     }
-
+    
     stage('Build image') {
       steps {
         script {
