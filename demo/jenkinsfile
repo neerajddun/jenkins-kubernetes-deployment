@@ -4,7 +4,7 @@ pipeline {
     dockerimagename = "neeraj91/react-app"
     dockerImage = ""
   }
-  
+
   agent any
 
   triggers {
@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage('Checkout Source') {
       steps {
-        git 'https://github.com/neerajddun/jenkins-pipeline.git'
+        checkout scm
       }
     }
     stage('Build image') {
