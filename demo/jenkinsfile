@@ -4,6 +4,12 @@ pipeline {
     dockerimagename = "neeraj91/react-app"
     dockerImage = ""
   }
+
+  triggers {
+
+    githubPush()
+  
+  }
   agent any
 
   triggers {
