@@ -14,32 +14,43 @@ pipeline {
   stages {
     stage('Checkout Source') {
       steps {
-        checkout scm
+        git credentialsId: 'github-credentials',
+            url: 'https://github.com/neerajddun/jenkins-pipeline.git',
+            branch: 'master'
       }
     }
+
     stage('Build image') {
-      steps{
+      steps {
         script {
           dockerImage = docker.build dockerimagename
         }
       }
     }
+
     stage('Pushing Image') {
       environment {
-          registryCredential = 'dockerhub-credentials'
-           }
-      steps{
+        registryCredential = 'dockerhub-credentials'
+      }
+      steps {
         script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
+          docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
             dockerImage.push("latest")
           }
         }
       }
     }
+
     stage('Deploy to Kubernetes') {
-  steps {
-    sh 'echo Deploy'
+      steps {
+        sh 'echo Deploy'
+      }
+    }
   }
-}
+
+  post {
+    always {
+      cleanWs()
+    }
   }
 }
