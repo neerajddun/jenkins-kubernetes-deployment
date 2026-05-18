@@ -1,17 +1,18 @@
 pipeline {
 
+  agent any
+
   environment {
     dockerimagename = "neeraj91/react-app"
     dockerImage = ""
   }
-
-  agent any
 
   triggers {
     githubPush()
   }
 
   stages {
+
     stage('Checkout Source') {
       steps {
         git credentialsId: 'github-credentials',
@@ -19,19 +20,36 @@ pipeline {
             branch: 'master'
       }
     }
-    
-    stage('Build image') {
+
+    stage('SonarQube Analysis') {
       steps {
-        script {
-          dockerImage = docker.build dockerimagename
+        withSonarQubeEnv('sonarqube') {
+
+          sh '''
+          sonar-scanner \
+          -Dsonar.projectKey=react-app \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=http://YOUR-SONAR-IP:9000 \
+          -Dsonar.login=$SONAR_AUTH_TOKEN
+          '''
         }
       }
     }
 
-    stage('Pushing Image') {
+    stage('Build Docker Image') {
+      steps {
+        script {
+          dockerImage = docker.build(dockerimagename)
+        }
+      }
+    }
+
+    stage('Push Docker Image') {
+
       environment {
         registryCredential = 'dockerhub-credentials'
       }
+
       steps {
         script {
           docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
@@ -43,7 +61,7 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'echo Deploy'
+        sh 'echo Deploying to Kubernetes'
       }
     }
   }
