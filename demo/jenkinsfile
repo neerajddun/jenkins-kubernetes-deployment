@@ -99,8 +99,9 @@ pipeline {
   }
 
   post {
-    always {
-      cleanWs()
-    }
+  always {
+    // cleanWs()    ← comment this out temporarily
+    echo "keeping workspace for debug"
   }
+}
 }
