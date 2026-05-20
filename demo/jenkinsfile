@@ -20,12 +20,12 @@ pipeline {
     }
 
     stage('Checkout Source') {
-      steps {
-        git credentialsId: 'github-credentials',
-            url: 'https://github.com/neerajddun/jenkins-pipeline.git',
-            branch: 'master'
-      }
-    }
+  steps {
+    git credentialsId: 'github-credentials',
+        url: 'https://github.com/neerajddun/jenkins-kubernetes-deployment.git',
+        branch: 'master'
+  }
+}
 
     stage('SonarQube Analysis') {
       steps {
