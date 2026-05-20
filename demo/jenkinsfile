@@ -61,7 +61,7 @@ pipeline {
 
     stage('Terraform Init & Create S3') {
       steps {
-        dir('terraform') {
+        dir('demo/terraform') {
           sh '''
             terraform init
             terraform plan -out=tfplan
