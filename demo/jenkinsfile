@@ -59,6 +59,38 @@ pipeline {
       }
     }
 
+    stage('Terraform Init & Create S3') {
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform init
+            terraform plan -out=tfplan
+            terraform apply -auto-approve tfplan
+          '''
+        }
+      }
+    }
+
+    stage('Upload Artifact to S3') {
+      steps {
+        sh """
+          # Create artifact (zip source code)
+          tar -czf ${BUILD_ARTIFACT} --exclude='.git' --exclude='node_modules' .
+
+          # Upload to S3
+          aws s3 cp ${BUILD_ARTIFACT} s3://${S3_BUCKET}/artifacts/${BUILD_ARTIFACT}
+
+          # Also save build info
+          echo "Build: ${BUILD_NUMBER}" > build-info.txt
+          echo "Date: \$(date)" >> build-info.txt
+          echo "Commit: \$(git rev-parse HEAD)" >> build-info.txt
+          aws s3 cp build-info.txt s3://${S3_BUCKET}/artifacts/build-${BUILD_NUMBER}-info.txt
+
+          echo "Artifact uploaded to s3://${S3_BUCKET}/artifacts/${BUILD_ARTIFACT}"
+        """
+      }
+    }
+
     stage('Deploy to Kubernetes') {
       steps {
         sh 'echo Deploying to Kubernetes'
