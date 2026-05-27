@@ -1,5 +1,5 @@
 variable "bucket" {
-  default = "neeraj-bucket@1234"
+  default = "neeraj-react-artifacts-1234"
 }
 
 variable "region" {
