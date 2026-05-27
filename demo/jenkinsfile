@@ -64,6 +64,16 @@ stage('Pushing Image') {
     }
 }
 
+stage('Terraform') {
+    steps {
+        dir('demo/terraform') {
+            sh 'terraform init'
+            sh 'terraform validate'
+            sh 'terraform plan'
+        }
+    }
+}
+
     stage('Deploy to Kubernetes') {
       steps {
         dir('demo'){
