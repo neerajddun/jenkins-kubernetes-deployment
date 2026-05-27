@@ -1,38 +1,25 @@
 pipeline {
 
-  agent any
-
   environment {
     dockerimagename = "neeraj91/react-app"
     dockerImage = ""
   }
 
-  triggers {
-    githubPush()
-  }
+  agent any
 
   stages {
 
-     stage('Clean Workspace') {
+    stage('Checkout Source') {
       steps {
-        deleteDir()
+        git 'https://github.com/neerajddun/jenkins-kubernetes-deployment.git'
       }
     }
-
-    stage('Checkout Source') {
-  steps {
-    git credentialsId: 'github-credentials',
-        url: 'https://github.com/neerajddun/jenkins-kubernetes-deployment.git',
-        branch: 'master'
-  }
-}
 
     stage('SonarQube Analysis') {
       steps {
         script {
           def scannerHome = tool 'sonar-scanner'
-
-          withSonarQubeEnv('sonarqube') {
+          withSonarQubeEnv('SonarQube') {
             sh """
               ${scannerHome}/bin/sonar-scanner \
               -Dsonar.projectKey=react-app \
@@ -44,15 +31,23 @@ pipeline {
       }
     }
 
-    stage('Build Docker Image') {
+    stage('Quality Gate') {
       steps {
-        script {
-          dockerImage = docker.build(dockerimagename)
+        timeout(time: 5, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
         }
       }
     }
 
-    stage('Push Docker Image') {
+    stage('Build image') {
+      steps {
+        script {
+          dockerImage = docker.build dockerimagename
+        }
+      }
+    }
+
+    stage('Pushing Image') {
       environment {
         registryCredential = 'dockerhub-credentials'
       }
@@ -65,61 +60,12 @@ pipeline {
       }
     }
 
-    stage('Debug Workspace') {
+    stage('Deploy to Kubernetes') {
       steps {
-        sh '''
-          pwd
-          ls -la
-          ls -la demo
-          ls -la demo/terraform
-          find . -name "*.tf"
-        '''
-      }
-    }
-
-    stage('Terraform Init & Create S3') {
-      steps {
-        dir('demo/terraform') {
-          sh '''
-            terraform init
-            terraform plan -out=tfplan
-            terraform apply -auto-approve tfplan
-          '''
+        withKubeConfig(credentialsId: 'kube-credentials') {
+          sh "kubectl apply -f k8s/deployment.yaml"
         }
       }
     }
-
-    stage('Upload Artifact to S3') {
-      steps {
-        sh """
-          # Create artifact (zip source code)
-          tar -czf ${BUILD_ARTIFACT} --exclude='.git' --exclude='node_modules' .
-
-          # Upload to S3
-          aws s3 cp ${BUILD_ARTIFACT} s3://${S3_BUCKET}/artifacts/${BUILD_ARTIFACT}
-
-          # Also save build info
-          echo "Build: ${BUILD_NUMBER}" > build-info.txt
-          echo "Date: \$(date)" >> build-info.txt
-          echo "Commit: \$(git rev-parse HEAD)" >> build-info.txt
-          aws s3 cp build-info.txt s3://${S3_BUCKET}/artifacts/build-${BUILD_NUMBER}-info.txt
-
-          echo "Artifact uploaded to s3://${S3_BUCKET}/artifacts/${BUILD_ARTIFACT}"
-        """
-      }
-    }
-
-    stage('Deploy to Kubernetes') {
-      steps {
-        sh 'echo Deploying to Kubernetes'
-      }
-    }
   }
-
-  post {
-  always {
-    // cleanWs()    ← comment this out temporarily
-    echo "keeping workspace for debug"
-  }
-}
 }

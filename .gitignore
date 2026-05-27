@@ -1,0 +1,12 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+tfplan
+
+# PEM keys - never commit these!
+*.pem
+
+# Node
+node_modules/
