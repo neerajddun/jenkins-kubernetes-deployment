@@ -4,3 +4,6 @@
 *.tfstate.backup
 tfplan
 *.pem
+*.tfstate
+*.tfstate.*
+.terraform/

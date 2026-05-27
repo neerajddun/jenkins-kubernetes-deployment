@@ -70,8 +70,19 @@ stage('Terraform') {
             sh 'terraform init'
             sh 'terraform validate'
             sh 'terraform plan'
+            sh 'terraform apply -auto-approve'
         }
     }
+}
+
+stage('upload arifacts to s3')
+{
+  steps {
+    dir('demo') {
+      sh 'zip -r app.zip .'
+            sh 'aws s3 cp app.zip s3://neeraj-bucket@1234/'
+    }
+  }
 }
 
     stage('Deploy to Kubernetes') {
