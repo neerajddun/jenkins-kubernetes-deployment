@@ -1,7 +1,7 @@
 variable "bucket" {
-    default = "neeraj-bucket@1234"
+  default = "neeraj-bucket@1234"
 }
 
 variable "region" {
-    default = "us-southeast-1"
+  default = "ap-southeast-1"
 }
