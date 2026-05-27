@@ -40,30 +40,36 @@ pipeline {
     }
 
     stage('Build image') {
-      steps {
-        script {
-          dockerImage = docker.build dockerimagename
+    steps {
+        dir('demo') {
+            script {
+                dockerImage = docker.build("${dockerimagename}")
+            }
         }
-      }
     }
+}
 
-    stage('Pushing Image') {
-      environment {
+stage('Pushing Image') {
+    environment {
         registryCredential = 'dockerhub-credentials'
-      }
-      steps {
-        script {
-          docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
-            dockerImage.push("latest")
-          }
-        }
-      }
     }
+    steps {
+        dir('demo') {
+            script {
+                docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
+                    dockerImage.push("latest")
+                }
+            }
+        }
+    }
+}
 
     stage('Deploy to Kubernetes') {
       steps {
-        withKubeConfig(credentialsId: 'kube-credentials') {
-          sh "kubectl apply -f k8s/deployment.yaml"
+        dir('demo'){
+            script {
+          sh "echo Deploy"
+            }
         }
       }
     }
