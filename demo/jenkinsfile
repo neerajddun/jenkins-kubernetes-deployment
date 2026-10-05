@@ -2,7 +2,7 @@ pipeline {
 
   environment {
     dockerimagename = "neeraj91/react-app"
-    dockerImage = ""
+
   }
 
   agent any
@@ -14,7 +14,7 @@ pipeline {
         git 'https://github.com/neerajddun/jenkins-kubernetes-deployment.git'
       }
     }
-
+/*
     stage('SonarQube Analysis') {
       steps {
         script {
@@ -39,31 +39,32 @@ pipeline {
       }
     }
 
-    stage('Build image') {
-    steps {
-        dir('demo') {
-            script {
-                dockerImage = docker.build("${dockerimagename}")
-            }
-        }
+*/
+   stage('Build Image') {
+  steps {
+    dir('demo') {
+      sh "docker build -t ${dockerimagename} ."
     }
+  }
 }
 
 stage('Pushing Image') {
-    environment {
-        registryCredential = 'dockerhub-credentials'
+  environment {
+    registryCredential = 'dockerhub-credentials'
+  }
+  steps {
+    withCredentials([usernamePassword(
+      credentialsId: 'dockerhub-credentials',
+      usernameVariable: 'DOCKER_USER',
+      passwordVariable: 'DOCKER_PASS'
+    )]) {
+      sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+      sh "docker push ${dockerimagename}:latest"
     }
-    steps {
-        dir('demo') {
-            script {
-                docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
-                    dockerImage.push("latest")
-                }
-            }
-        }
-    }
+  }
 }
 
+/*
 stage('Terraform') {
     steps {
         dir('demo/terraform') {
@@ -79,20 +80,28 @@ stage('upload arifacts to s3')
 {
   steps {
     dir('demo') {
-      sh 'zip -r app.zip .'
-            sh 'aws s3 cp app.zip s3://neeraj-react-artifacts-1234/'
+       sh 'aws s3 sync terraform/ s3://neeraj-react-artifacts-1234/builds/${BUILD_ID}/ --exclude ".terraform/*" --exclude "*.tfstate*" --exclude ".git/*"'
     }
   }
 }
+stage('Deploy to Kubernetes') {
+  steps {
+    dir('demo') {
+      withCredentials([file(credentialsId: 'kube-creds', variable: 'KUBECONFIG')]) {
+        sh 'kubectl apply -f deployment.yaml'
+        sh 'kubectl apply -f service.yaml'
 
-    stage('Deploy to Kubernetes') {
-      steps {
-        dir('demo'){
-            script {
-          sh "echo Deploy"
-            }
-        }
-      }
+     }
+    }
+  }
+    } */
+  }
+
+  post {
+
+    always {
+
+      cleanWs()
     }
   }
 }
